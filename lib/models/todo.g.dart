@@ -8,7 +8,7 @@ part of 'todo.dart';
 
 class TodoAdapter extends TypeAdapter<Todo> {
   @override
-  final typeId = 0;
+  final typeId = 1;
 
   @override
   Todo read(BinaryReader reader) {
@@ -19,25 +19,28 @@ class TodoAdapter extends TypeAdapter<Todo> {
     return Todo(
       title: fields[0] as String,
       dueDate: fields[1] as DateTime,
-      isDone: fields[2] as bool,
-      shouldRepeat: fields[3] as bool,
-      priority: fields[4] as int,
+      dueTime: fields[2] as String,
+      isDone: fields[3] as bool,
+      shouldRepeat: fields[4] as bool,
+      priority: fields[5] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, Todo obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.title)
       ..writeByte(1)
       ..write(obj.dueDate)
       ..writeByte(2)
-      ..write(obj.isDone)
+      ..write(obj.dueTime)
       ..writeByte(3)
-      ..write(obj.shouldRepeat)
+      ..write(obj.isDone)
       ..writeByte(4)
+      ..write(obj.shouldRepeat)
+      ..writeByte(5)
       ..write(obj.priority);
   }
 }

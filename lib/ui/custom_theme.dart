@@ -97,3 +97,9 @@ ThemeData basicDarkTheme () {
     ),
   );
 }
+
+ThemeData purpleTheme () {
+  return ThemeData(
+    primarySwatch: Colors.deepPurple,
+  );
+}
