@@ -1,10 +1,10 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:will_do/models/todo.dart';
+import 'package:will_do/plugins/notifications_plugin.dart';
 import 'package:will_do/screens/view_todo_screen.dart';
 import 'package:will_do/store/constants.dart';
 import 'package:will_do/widgets/create_floating_button.dart';
@@ -87,8 +87,10 @@ String _formatDate (DateTime date, String t) {
 
 class HomeScreen extends StatelessWidget {
   static const String _okText = "OK";
+
   @override
   Widget build(BuildContext context) {
+    print("[HomeScreen] build...");
     return Scaffold(
       appBar: AppBar(
         title: Text("Will Do"),
@@ -113,7 +115,7 @@ class HomeScreen extends StatelessWidget {
           //print("we have ${futureTodos.length} future todos");
 
           List<Todo> doneTodos = todos.where((t) => t.isDone).toList();
-          //print("we have ${doneTodos.length} done todos");
+          print("we have ${doneTodos.length} done todos");
 
           return ListView.builder(
             itemCount: box.values.length + 3,
@@ -141,7 +143,7 @@ class HomeScreen extends StatelessWidget {
               if (index == (overdueTodos.length + futureTodos.length + 2)) {
                 return interTaskTitle(
                   color: Theme.of(context).secondaryHeaderColor,
-                  isEmpty: futureTodos.length == 0,
+                  isEmpty: doneTodos.length == 0,
                   title: "Completed",
                 );
               }
@@ -169,6 +171,7 @@ class HomeScreen extends StatelessWidget {
   Widget _todoTile (Todo todo, Color titleColor, BuildContext context, bool isOverdue) {
     bool done = todo.isDone;
     Color color = done ? Colors.grey[400] : titleColor;
+    final notificationPlugin = Provider.of<NotificationPlugin>(context, listen: false);
     return ListTile(
       onLongPress: () {
         showModalBottomSheet(
@@ -195,7 +198,9 @@ class HomeScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ViewTodoScreen(todo: todo,),
+                          builder: (context) {
+                            return ViewTodoScreen(todo: todo,);
+                          }
                         ),
                       );
                     }
@@ -209,6 +214,7 @@ class HomeScreen extends StatelessWidget {
                       Box<Todo> todoBox = Hive.box<Todo>(todoBoxName);
                       todo.isDone = !done;
                       todoBox.put(todo.key, todo);
+                      notificationPlugin.cancelNotification(todo.key);
                     }
                   ),
                   menuListTile(
@@ -221,8 +227,10 @@ class HomeScreen extends StatelessWidget {
                       final String picked = await _deleteDialog(context);
                       print("[Dialog] picked $picked");
                       if (picked == _okText) {
+                        final int todoKey = todo.key;
                         Box<Todo> todoBox = Hive.box<Todo>(todoBoxName);
                         todoBox.delete(todo.key);
+                        await notificationPlugin.cancelNotification(todoKey);
                       }
                     }
                   ),
@@ -241,6 +249,7 @@ class HomeScreen extends StatelessWidget {
           Box<Todo> todoBox = Hive.box<Todo>(todoBoxName);
           todo.isDone = !done;
           todoBox.put(todo.key, todo);
+          Provider.of<NotificationPlugin>(context, listen: false).cancelNotification(todo.key);
         },
       ),
       title: InkWell(
@@ -248,7 +257,9 @@ class HomeScreen extends StatelessWidget {
           Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => ViewTodoScreen(todo: todo,),
+                builder: (context) {
+                  return ViewTodoScreen(todo: todo,);
+                }
               ),
           );
         },

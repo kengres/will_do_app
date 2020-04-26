@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:will_do/models/todo.dart';
+import 'package:will_do/plugins/notifications_plugin.dart';
 import 'package:will_do/store/constants.dart';
 import 'package:hive/hive.dart';
 
@@ -42,7 +44,7 @@ class _AddTodoScreenState extends State<AddTodoScreen> {
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
 
-  void _saveTodo () {
+  void _saveTodo () async {
     Todo newTodo = Todo(
       title: _title,
       dueDate: _dueDate,
@@ -51,7 +53,19 @@ class _AddTodoScreenState extends State<AddTodoScreen> {
     Box<Todo> todoBox = Hive.box<Todo>(todoBoxName);
     todoBox.add(newTodo);
     _displaySnackBar("Task successfully created!");
-     Navigator.of(context).pop();
+    print("new todo key: ${newTodo.key}");
+    if (_dueTime != null) {
+      final DateTime dueDateTime = DateTime(_dueDate.year, _dueDate.month, _dueDate.day, _dueTime.hour, _dueTime.minute);
+      if (dueDateTime.isAfter(DateTime.now())) {
+        await Provider.of<NotificationPlugin>(context, listen: false).scheduleNotification(
+          dueDateTime,
+          newTodo.key,
+          _title,
+          "Your task is due now",
+        );
+      }
+    }
+    Navigator.of(context).pop();
   }
 
   @override

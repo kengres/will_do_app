@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:will_do/models/todo.dart';
+import 'package:will_do/plugins/notifications_plugin.dart';
 import 'package:will_do/store/constants.dart';
 
 String _getDisplayedDate (DateTime date) {
@@ -73,6 +75,7 @@ class _ViewTodoScreenState extends State<ViewTodoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print("[ViewTodoScreen] build...");
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
@@ -157,17 +160,31 @@ class _ViewTodoScreenState extends State<ViewTodoScreen> {
     );
   }
 
-  void _saveTodo () {
+  Future<void> _saveTodo () async {
     Todo newTodo = Todo(
       title: _title,
       dueDate: _dueDate,
       dueTime: _dueTime.toString(),
     );
     Box<Todo> todoBox = Hive.box<Todo>(todoBoxName);
-    print("key: ${widget.todo.key}");
+    // print("key0: ${widget.todo.key}");
+    // print("dueTime: ${_dueTime.toString()}");
     todoBox.put(widget.todo.key, newTodo);
     _displaySnackBar("Task successfully updated!");
     // Navigator.of(context).pop();
+    if (_dueTime != null) {
+      final DateTime dueDateTime = DateTime(_dueDate.year, _dueDate.month, _dueDate.day, _dueTime.hour, _dueTime.minute);
+      if (dueDateTime.isAfter(DateTime.now())) {
+        // print("key1: ${widget.todo.key}");
+        // print("key2: ${newTodo.key}");
+        await Provider.of<NotificationPlugin>(context, listen: false).scheduleNotification(
+          dueDateTime,
+          newTodo.key,
+          _title,
+          "Your task is due now",
+        );
+      }
+    }
   }
 
   Future<Null> _selectDate(BuildContext context) async {
