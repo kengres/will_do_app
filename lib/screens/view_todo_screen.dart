@@ -167,7 +167,8 @@ class _ViewTodoScreenState extends State<ViewTodoScreen> {
       dueTime: _dueTime.toString(),
     );
     Box<Todo> todoBox = Hive.box<Todo>(todoBoxName);
-    // print("key: ${widget.todo.key}");
+    // print("key0: ${widget.todo.key}");
+    // print("dueTime: ${_dueTime.toString()}");
     todoBox.put(widget.todo.key, newTodo);
     _displaySnackBar("Task successfully updated!");
     // Navigator.of(context).pop();

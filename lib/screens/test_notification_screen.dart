@@ -12,7 +12,10 @@ class _TestNotificationScreenState extends State<TestNotificationScreen> {
   @override
   Widget build(BuildContext context) {
     final notPlgn = Provider.of<NotificationPlugin>(context, listen: false);
+    final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text("Notifications"),
       ),
@@ -33,6 +36,13 @@ class _TestNotificationScreenState extends State<TestNotificationScreen> {
             ),
             SizedBox(height: 30,),
             RaisedButton(
+              child: Text("Notification in 5 s"),
+              onPressed: () async {
+                await notPlgn.debugNotification();
+              }
+            ),
+            SizedBox(height: 30,),
+            RaisedButton(
               child: Text("Notification in 10s"),
               color: Theme.of(context).primaryColor,
               textColor: Colors.white,
@@ -48,44 +58,47 @@ class _TestNotificationScreenState extends State<TestNotificationScreen> {
             ),
             SizedBox(height: 30,),
             RaisedButton(
-              child: Text("Notification in 1 min"),
+              child: Text("Notification in 20 sec"),
               onPressed: () async {
-                final time = DateTime.now().add(Duration(minutes: 1));
+                final time = DateTime.now().add(Duration(seconds: 20));
                 print("scheduled for ${time.toString()}");
-                await notPlgn.scheduleNotification(time, 4, "Schedule for 1 min", "This is a notification you scheduled 1 minute age");
+                await notPlgn.scheduleNotification(time, 4, "Schedule for 20 sec", "This is a notification you scheduled 1 minute age");
               }
             ),
             SizedBox(height: 30,),
             RaisedButton(
-              child: Text("Notification in 5min"),
+              child: Text("Notification periodically"),
               color: Theme.of(context).primaryColor,
               textColor: Colors.white,
               onPressed: () async {
-                final time = DateTime.now().add(Duration(minutes: 5));
-                print("scheduled for ${time.toString()}");
-                await notPlgn.scheduleNotification(time, 4, "Schedule for 5 min", "This is a notification you scheduled 1 minute age");
-              }
-            ),
-            SizedBox(height: 30,),
-            RaisedButton(
-              child: Text("Notification in 5 s"),
-              onPressed: () async {
-                await notPlgn.debugNotification();
+                print("scheduled for every 2 min");
+                await notPlgn.periodicNotification("periodically notification", "This is a notification you scheduled every minute");
               }
             ),
             SizedBox(height: 30,),
             RaisedButton(
               child: Text("All Notifications"),
-              color: Theme.of(context).primaryColor,
-              textColor: Colors.white,
               onPressed: () async {
                 final List<PendingNotificationRequest> all = await notPlgn.getScheduledNotifications();
                 print("we have ${all.length} pending notifications...");
-                if (all.length > 1) {
-                  print("example of notification: ");
-                  print(all[1].id);
-                  print(all[1].title);
+                for (var i = 0; i < all.length; i++) {
+                  print("=========== Pending notification ${all[i].id}: ");
+                  print(all[i].title);
                 }
+                final snackBar = SnackBar(
+                  content: Text("We have ${all.length} pending notifications"),
+                  backgroundColor: Colors.deepOrange,
+                );
+                _scaffoldKey.currentState.showSnackBar(snackBar);
+              }
+            ),
+            SizedBox(height: 30,),
+            RaisedButton(
+              child: Text("Cancel Notifications"),
+              color: Theme.of(context).primaryColor,
+              textColor: Colors.white,
+              onPressed: () async {
+                await notPlgn.cancelAllNotifications();
               }
             ),
           ]

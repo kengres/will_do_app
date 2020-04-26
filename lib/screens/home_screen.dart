@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:will_do/models/todo.dart';
+import 'package:will_do/plugins/notifications_plugin.dart';
 import 'package:will_do/screens/view_todo_screen.dart';
 import 'package:will_do/store/constants.dart';
 import 'package:will_do/widgets/create_floating_button.dart';
@@ -169,6 +171,7 @@ class HomeScreen extends StatelessWidget {
   Widget _todoTile (Todo todo, Color titleColor, BuildContext context, bool isOverdue) {
     bool done = todo.isDone;
     Color color = done ? Colors.grey[400] : titleColor;
+    final notificationPlugin = Provider.of<NotificationPlugin>(context, listen: false);
     return ListTile(
       onLongPress: () {
         showModalBottomSheet(
@@ -211,6 +214,7 @@ class HomeScreen extends StatelessWidget {
                       Box<Todo> todoBox = Hive.box<Todo>(todoBoxName);
                       todo.isDone = !done;
                       todoBox.put(todo.key, todo);
+                      notificationPlugin.cancelNotification(todo.key);
                     }
                   ),
                   menuListTile(
@@ -223,8 +227,10 @@ class HomeScreen extends StatelessWidget {
                       final String picked = await _deleteDialog(context);
                       print("[Dialog] picked $picked");
                       if (picked == _okText) {
+                        final int todoKey = todo.key;
                         Box<Todo> todoBox = Hive.box<Todo>(todoBoxName);
                         todoBox.delete(todo.key);
+                        await notificationPlugin.cancelNotification(todoKey);
                       }
                     }
                   ),
@@ -243,6 +249,7 @@ class HomeScreen extends StatelessWidget {
           Box<Todo> todoBox = Hive.box<Todo>(todoBoxName);
           todo.isDone = !done;
           todoBox.put(todo.key, todo);
+          Provider.of<NotificationPlugin>(context, listen: false).cancelNotification(todo.key);
         },
       ),
       title: InkWell(

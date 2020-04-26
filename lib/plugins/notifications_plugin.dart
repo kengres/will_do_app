@@ -63,7 +63,7 @@ class NotificationPlugin with ChangeNotifier{
         androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
     await flutterLocalNotificationsPlugin.schedule(
         0,
-        'scheduled title',
+        'scheduled for 5 sec',
         'scheduled body',
         scheduledDateTime,
         platformChannelSpecifics);
@@ -96,19 +96,60 @@ class NotificationPlugin with ChangeNotifier{
   Future<void> scheduleNotification (DateTime date, int id, String title, String description) async {
     print("scheduling notification");
     final androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      'scheduled_notification',
-      'Task Notification',
-      'Task notifications shown as scheduled in the calendar.',
+      'scheduled_notification', 'Task Notification', 'Task notifications shown as scheduled in the calendar.',
+      
+      importance: Importance.Max,
+      priority: Priority.High,
+      ticker: 'ticker',
       enableLights: true,
       color: Color.fromARGB(255, 206, 122, 206),
       ledColor: Color.fromARGB(255, 206, 122, 206),
       ledOnMs: 1000,
-      ledOffMs: 500
+      ledOffMs: 500,
     );
     final iOSPlatformChannelSpecifics = IOSNotificationDetails();
     final platformChannelSpecifics = NotificationDetails(androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
     try {
-      await _localNotificationsPlugin.schedule(id, title, description, date, platformChannelSpecifics);
+      await _localNotificationsPlugin.schedule(
+        id,
+        title,
+        description,
+        date,
+        platformChannelSpecifics,
+        payload: "id: $id, title: $title",
+        androidAllowWhileIdle: true,
+      );
+    } catch (e) {
+      print("[Nfc Plgin] unable to schrdule notification: ${e.toString()}");
+    }
+  }
+
+  Future<void> periodicNotification (
+    String title,
+    String description) async {
+    print("periodic notification");
+    final androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'periodic_notification', 'periodic Notification', 'periodic notifications shown as scheduled in the calendar.',
+      
+      importance: Importance.Max,
+      priority: Priority.High,
+      enableLights: true,
+      color: Color.fromARGB(255, 116, 102, 225),
+      ledColor: Color.fromARGB(255, 116, 102, 225),
+      ledOnMs: 1000,
+      ledOffMs: 500,
+    );
+    final iOSPlatformChannelSpecifics = IOSNotificationDetails();
+    final platformChannelSpecifics = NotificationDetails(androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+    try {
+      await _localNotificationsPlugin.periodicallyShow(
+        453,
+        title,
+        description,
+        RepeatInterval.EveryMinute,
+        platformChannelSpecifics,
+        payload: "title: $title",
+      );
     } catch (e) {
       print("[Nfc Plgin] unable to schrdule notification: ${e.toString()}");
     }
