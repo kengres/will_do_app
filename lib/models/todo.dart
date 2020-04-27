@@ -1,22 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-//import 'package:meta/meta.dart';
 
 // flutter packages pub run build_runner build
 part 'todo.g.dart';
 
-@HiveType(typeId: 1)
+@HiveType(typeId: 0)
 class Todo extends HiveObject {
   @HiveField(0)
   String title;
+
   @HiveField(1)
   DateTime dueDate;
+
   @HiveField(2)
   String dueTime;
+
   @HiveField(3)
   bool isDone;
+
   @HiveField(4)
   bool shouldRepeat;
+
   @HiveField(5)
   int priority;
 
